@@ -9,6 +9,18 @@
 
 ---
 
+# LiveAction 
+
+
+This can be used to import and analyze log files.
+
+Steps:
+
+- run "load-customer.sh <logfiles.zip>
+
+Go to localhost:8080 and use the dashboards.
+
+
 # HyperDX
 
 [HyperDX](https://hyperdx.io) helps engineers quickly figure out why production is

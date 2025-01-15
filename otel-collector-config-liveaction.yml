@@ -1,0 +1,60 @@
+exporters:
+  otlphttp/hdx: 
+    endpoint: 'http://host.docker.internal:4318'
+    headers:
+      authorization: 23740967-ba0b-414d-b011-41808d7bef70
+    compression: gzip
+    tls:
+      insecure: false
+      insecure_skip_verify: true
+receivers:
+  filelog:
+    include:
+      - /customerlogs/Livenx*.log
+      - /customerlogs/**/Livenx*.log
+      - /customerlogs/**/log/Livenx*.log
+    start_at: beginning
+    multiline:
+      line_start_pattern: ^\d{4}-\d{2}
+    operators:
+      - type: regex_parser
+        regex: '(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) [+-]\d{4} \[(?P<task>.*)\] (?P<log_level>\w+)\s+(?P<logger>[^\s]+) - (?P<message>.*)'
+        timestamp:
+          parse_from: attributes.timestamp
+          layout: '%Y-%m-%d %H:%M:%S'
+        severity:
+          parse_from: attributes.log_level
+
+  filelog/mongod:
+    include:
+      - /customerlogs/mongod*.log*
+      - /customerlogs/**/mongod*.log*
+      - /customerlogs/**/log/mongod*.log*
+    start_at: beginning
+    multiline:
+      line_start_pattern: ^\{"t":\{"\$date"
+    operators:
+      - type: regex_parser
+        regex: '\{"t":\{"\$date":"(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}(?:[+-]\d{2}:?\d{2}|\+00:00))"\},"s":"(?P<log_level>[A-Z])",\s*"c":"(?P<task>[A-Z]+)",\s*"id":(?P<id>\d+),\s*"ctx":"(?P<context>[^"]+)",\s*"msg":"(?P<message>[^"]+)","attr":\{(?P<attributes>.*?)\}\}'
+        timestamp:
+          parse_from: attributes.timestamp
+          layout: '%Y-%m-%dT%H:%M:%S.%f%z'
+        severity:
+          parse_from: attributes.log_level
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+  resource:
+    attributes:
+      - action: insert
+        key: service.name
+        value: log4j-reader
+
+service:
+  pipelines:
+    logs:
+      receivers: [filelog]
+      processors: [batch, resource]
+      exporters: [otlphttp/hdx]
