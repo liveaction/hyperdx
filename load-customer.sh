@@ -1,4 +1,4 @@
-#!/bin/bassh
+#!/bin/bash
 
 # Function to recursively unzip files
 recursive_unzip() {
@@ -22,7 +22,7 @@ recursive_unzip() {
 }
 
 docker compose pull
-docker compose pull -f docker-compose.liveaction.yml
+docker compose -f docker-compose.liveaction.yml pull
 docker compose down -v
 docker compose -f docker-compose.liveaction.yml down -v
 
@@ -43,7 +43,8 @@ recursive_unzip "customerlogs"
 recursive_unzip "customerlogs"
 echo "All zip files have been processed."
 
-docker compose up -d
+ docker run -d -p 8000:8000 -p 4318:4318 -p 4317:4317 -p 8080:8080 -p 8002:8002 hyperdx/hyperdx-local
+#docker compose up -d
 #wait for hyperdx to start
 sleep 30
 docker compose -f docker-compose.liveaction.yml up -d

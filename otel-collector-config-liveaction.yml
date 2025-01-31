@@ -2,11 +2,14 @@ exporters:
   otlphttp/hdx: 
     endpoint: 'http://host.docker.internal:4318'
     headers:
-      authorization: 23740967-ba0b-414d-b011-41808d7bef70
+      authorization: 52715e80-6276-4c19-82ac-f8e53c9203f1
     compression: gzip
     tls:
       insecure: false
       insecure_skip_verify: true
+    retry_on_failure:
+      enabled: true
+
 receivers:
   filelog:
     include:
@@ -14,6 +17,9 @@ receivers:
       - /customerlogs/**/Livenx*.log
       - /customerlogs/**/log/Livenx*.log
     start_at: beginning
+    max_concurrent_files: 2
+    retry_on_failure:
+      enabled: true
     multiline:
       line_start_pattern: ^\d{4}-\d{2}
     operators:
@@ -31,6 +37,9 @@ receivers:
       - /customerlogs/**/mongod*.log*
       - /customerlogs/**/log/mongod*.log*
     start_at: beginning
+    retry_on_failure:
+      enabled: true
+
     multiline:
       line_start_pattern: ^\{"t":\{"\$date"
     operators:
@@ -44,8 +53,6 @@ receivers:
 
 processors:
   batch:
-    timeout: 5s
-    send_batch_size: 1024
   resource:
     attributes:
       - action: insert
@@ -56,5 +63,5 @@ service:
   pipelines:
     logs:
       receivers: [filelog]
-      processors: [batch, resource]
+      processors: [batch,resource]
       exporters: [otlphttp/hdx]
