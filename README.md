@@ -16,7 +16,7 @@ This can be used to import and analyze log files.
 
 Steps:
 
-- run "sh load-customer.sh <logfiles.zip>"
+- run "./load-customer.sh <logfiles.zip>"
 
 Go to localhost:8080 and use the dashboards.
 
